@@ -1,7 +1,7 @@
 <html>
 <body>
 
-<script type="text/javascript">
+<script>
 rangeSlider = {
     totalDuration: 0,
     interpretedPercent: 0,
@@ -24,14 +24,12 @@ rangeSlider = {
         rs.ctx = rs.canvas.getContext('2d');
         rs.draggable = false;
         rs.mouseX = 0;
-        rs.mouseY = 0;
 
         rs.totalDuration = totalDuration;
         rs.cw = rs.ctx.canvas.width;
         rs.ch = rs.ctx.canvas.height;
         rs.width = this.cw - (rs.padding);
         rs.startPosition = rs.padding + (rs.width * (rs.startPositionPercent/100));
-        rs.endPosition = rs.width;
 
         //detect touch and then automatically assign events
         var isTouchSupported = 'ontouchstart' in window;
@@ -57,8 +55,9 @@ rangeSlider = {
         var cw = this.cw;
         var totalDuration = this.totalDuration;
 		
-		rs.startPosition = Math.min(mouseX, rs.endPosition);
+		rs.startPosition = Math.min(mouseX, rs.width);
 		rs.startPosition = Math.max(rs.startPosition, rs.padding);
+		//console.log(mouseX, rs.width, rs.startPosition, rs.padding);
     },
     draw: function() {
         var rs = this;
@@ -81,6 +80,7 @@ rangeSlider = {
 		var rectDistance = 8;
 		rs.ctx.strokeStyle = grad;
 		rs.ctx.lineWidth = lineWidth;
+		//console.log(rs.startPosition);
 		if(rs.startPosition - lineCircleDist > 0) { 
 			rs.ctx.beginPath();
 			rs.ctx.moveTo(rs.padding, ch - rs.padding);
@@ -180,43 +180,25 @@ rangeSlider = {
         e.preventDefault();
 
         rs.mouseX = e.layerX;
-        rs.mouseY = e.layerY;
+		
+		//console.log(rs.mouseX);
 
-        rs.mouseX = (e.targetTouches) ? e.targetTouches[0].layerX - c.offsetLeft : e.layerX - c.offsetLeft;
-        rs.mouseY = (e.targetTouches) ? e.targetTouches[0].layerY - c.offsetTop : e.layerY - c.offsetTop;
+        rs.mouseX = (e.targetTouches) ? e.targetTouches[0].pageX - c.offsetLeft : e.layerX - c.offsetLeft;
+		
+		//console.log(rs.mouseX, e.targetTouches);
 
 
         if (rs.draggable) {
-
-            //RangeStart
-            var distance = rs.getDistance(rs.startPosition, ch - rs.padding);
-			// console.log(rs.mouseX, rs.currentPosition, rs.startPosition);
-            //if distance< r1+r2 boom !
+		
 			if(rs.mouseX > rs.startPosition && Math.round(rs.currentPosition*100) >= rs.maxPositionPercent) {
 				//console.log("Not moving right");
 			} else if (rs.mouseX < rs.startPosition && Math.round(rs.currentPosition*100) <= rs.startPositionPercent) {
 				//console.log("Not moving left");
-			} else if (distance <= 70) {
+			} else {
                 rs.update(rs.mouseX);
                 return;
             }
         }
-    },
-    getDistance: function(px, py) {
-
-        var rs = this;
-
-        //get the distance
-        var xs = 0;
-        var ys = 0;
-
-        xs = px - rs.mouseX;
-        xs = xs * xs;
-
-        ys = py - rs.mouseY;
-        ys = ys * ys;
-
-        return Math.sqrt(xs + ys);
     },
     clearCanvas: function() {
 
