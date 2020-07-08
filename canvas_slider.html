@@ -1,0 +1,244 @@
+<html>
+<body>
+
+<script>
+rangeSlider = {
+    totalDuration: 0,
+    interpretedPercent: 0,
+    currentPosition: 0,
+	maxPositionPercent: 85,
+	startPositionPercent: 10,
+    width: 0,
+    padding: 30,
+    startPosition: 0,
+    cw: 0,
+    ch: 0,
+
+    init: function(totalDuration) {
+        var rs = this;
+
+        rs.canvas = document.createElement("canvas");
+        rs.canvas.width = document.documentElement.clientWidth;
+        rs.canvas.height = 100;
+        document.body.appendChild(rs.canvas);
+        rs.ctx = rs.canvas.getContext('2d');
+        rs.draggable = false;
+        rs.mouseX = 0;
+        rs.mouseY = 0;
+
+        rs.totalDuration = totalDuration;
+        rs.cw = rs.ctx.canvas.width;
+        rs.ch = rs.ctx.canvas.height;
+        rs.width = this.cw - (rs.padding);
+        rs.startPosition = rs.padding + (rs.width * (rs.startPositionPercent/100));
+        rs.endPosition = rs.width;
+
+        //detect touch and then automatically assign events
+        var isTouchSupported = 'ontouchstart' in window;
+        var startEvent = isTouchSupported ? 'touchstart' : 'mousedown';
+        var moveEvent = isTouchSupported ? 'touchmove' : 'mousemove';
+        var endEvent = isTouchSupported ? 'touchend' : 'mouseup';
+
+        //add the canvas listeners and functions
+        rs.canvas.addEventListener(startEvent, function mousedown(e) {
+            rs.x`gable = true;
+        }, false);
+        rs.canvas.addEventListener(endEvent, function mouseup(e) {
+            rs.draggable = false;
+			console.log(rs.interpretedPercent);
+        }, false);
+        rs.canvas.addEventListener(moveEvent, rangeSlider.mousemove.bind(this), false);
+
+        rs.draw();
+    },
+    update: function(mouseX) {
+
+        var rs = this;
+        var cw = this.cw;
+        var totalDuration = this.totalDuration;
+		
+		rs.startPosition = Math.min(mouseX, rs.endPosition);
+		rs.startPosition = Math.max(rs.startPosition, rs.padding);
+    },
+    draw: function() {
+        var rs = this;
+        var ch = this.ch;
+
+        this.clearCanvas();
+        
+        var grad= rs.ctx.createLinearGradient(rs.padding, ch - rs.padding, rs.width, ch - rs.padding);
+        grad.addColorStop(0, "#d9d9df");
+        grad.addColorStop(1, "#07077c");
+
+        //draw track
+		var lineWidth = 3
+		var curveRadius = 12;
+		var lineCircleDist = 50;
+		var circleRadius = 28;
+		var rectWidth = 3;
+		var rectheight = 10;
+		var lineRectDist = 12;
+		var rectDistance = 8;
+		rs.ctx.strokeStyle = grad;
+		rs.ctx.lineWidth = lineWidth;
+		if(rs.startPosition - lineCircleDist > 0) { 
+			rs.ctx.beginPath();
+			rs.ctx.moveTo(rs.padding, ch - rs.padding);
+			rs.ctx.lineTo(rs.startPosition - lineCircleDist, ch - rs.padding);
+			rs.ctx.closePath();
+			rs.ctx.stroke();
+		}
+		
+		if (rs.startPosition + lineCircleDist < rs.width) {
+			rs.ctx.beginPath();
+			rs.ctx.moveTo(rs.startPosition + lineCircleDist, ch - rs.padding);
+			rs.ctx.lineTo(rs.width, ch - rs.padding);
+			rs.ctx.closePath();
+			rs.ctx.stroke();
+		}
+		
+		rs.ctx.beginPath()
+		rs.ctx.arc(rs.startPosition - lineCircleDist, ch - rs.padding - curveRadius, curveRadius, 0,0.5*Math.PI, false);
+		rs.ctx.stroke()
+		
+		rs.ctx.beginPath()
+		rs.ctx.arc(rs.startPosition, ch - rs.padding, circleRadius + curveRadius, 1.1*Math.PI,1.9*Math.PI, false);
+		rs.ctx.stroke()
+		
+		rs.ctx.beginPath()
+		rs.ctx.arc(rs.startPosition + lineCircleDist, ch - rs.padding - curveRadius, curveRadius, 0.5*Math.PI,1*Math.PI, false);
+		rs.ctx.stroke()
+		
+		// draw fence
+		//console.log("-------------------");
+		for(var fx=rs.padding; fx <= rs.width; fx = fx + rectDistance){
+			rs.ctx.beginPath();
+			rs.ctx.fillStyle = "#d9d9df";
+			var fy = ch - rs.padding - lineRectDist - lineWidth;
+			var cirMid = Math.round(rs.startPosition);
+			var totRadius = circleRadius + curveRadius + lineWidth;
+			if(fx >= cirMid - totRadius - (2 * rectDistance) && fx <= cirMid + totRadius + (2 * rectDistance)) {
+				//console.log(fx, cirMid);
+				var circleHeight;
+				if (fx == cirMid) {
+					circleHeight = totRadius;
+				} else {
+					var curRadius = 0;
+					if (fx < cirMid) {
+						curRadius = cirMid - fx;
+					} else {
+						curRadius = fx - cirMid;
+					}
+					curRadius = Math.round(curRadius);
+					circleHeight = Math.round(Math.sqrt(((totRadius) * (totRadius)) + ((curRadius) * (curRadius))));
+					//console.log(circleHeight, totRadius, curRadius);
+				}
+				fy = circleHeight - 28;
+				//console.log(ch - rs.padding, circleHeight, fy);
+				//fy = fy - 95;
+				if (fx < cirMid - totRadius + rectDistance) {
+					fy += 4;
+					if (fx < cirMid - totRadius)
+						fy += 5;
+				}
+				if (fx > cirMid + totRadius - rectDistance) {
+					fy += 5;
+					if (fx > cirMid + totRadius)
+						fy += 6;
+				}
+			}
+			rs.ctx.rect(fx, fy, rectWidth, rectheight);
+			rs.ctx.fill();
+		}
+
+        //cursor
+        rs.ctx.beginPath();
+        rs.ctx.fillStyle = "#07077c";
+        rs.ctx.arc(rs.startPosition, ch - rs.padding, circleRadius, 0, 2 * Math.PI, true);
+        rs.ctx.fill();
+        rs.ctx.beginPath();
+        rs.ctx.font = "20px sans-serif";
+		rs.ctx.textAlign = "center";
+		rs.ctx.textBaseline = 'middle';
+        rs.ctx.fillStyle = "white";
+		rs.currentPosition = (rs.startPosition - rs.padding) / (rs.width - rs.padding);
+		var curPosition = Math.round(rs.currentPosition*100);
+		rs.interpretedPercent = Math.round(curPosition / 5) + 3;
+        rs.ctx.fillText( rs.interpretedPercent + "%", rs.startPosition, ch - rs.padding);
+        rs.ctx.fill();
+
+    },
+    mousemove: function(e) {
+
+        var rs = this;
+        var ch = rs.ch;
+        var c = rs.canvas;
+
+        rs.draw();
+
+        e.stopPropagation();
+        e.preventDefault();
+
+        rs.mouseX = e.layerX;
+        rs.mouseY = e.layerY;
+
+        rs.mouseX = (e.targetTouches) ? e.targetTouches[0].layerX - c.offsetLeft : e.layerX - c.offsetLeft;
+        rs.mouseY = (e.targetTouches) ? e.targetTouches[0].layerY - c.offsetTop : e.layerY - c.offsetTop;
+
+
+        if (rs.draggable) {
+
+            //RangeStart
+            var distance = rs.getDistance(rs.startPosition, ch - rs.padding);
+			// console.log(rs.mouseX, rs.currentPosition, rs.startPosition);
+            //if distance< r1+r2 boom !
+			if(rs.mouseX > rs.startPosition && Math.round(rs.currentPosition*100) >= rs.maxPositionPercent) {
+				//console.log("Not moving right");
+			} else if (rs.mouseX < rs.startPosition && Math.round(rs.currentPosition*100) <= rs.startPositionPercent) {
+				//console.log("Not moving left");
+			} else if (distance <= 70) {
+                rs.update(rs.mouseX);
+                return;
+            }
+        }
+    },
+    getDistance: function(px, py) {
+
+        var rs = this;
+
+        //get the distance
+        var xs = 0;
+        var ys = 0;
+
+        xs = px - rs.mouseX;
+        xs = xs * xs;
+
+        ys = py - rs.mouseY;
+        ys = ys * ys;
+
+        return Math.sqrt(xs + ys);
+    },
+    clearCanvas: function() {
+
+        var rs = this;
+
+        // Store the current transformation matrix
+        rs.ctx.save();
+
+        // Use the identity matrix while clearing the canvas
+        rs.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        rs.ctx.clearRect(0, 0, this.cw, this.ch);
+
+        // Restore the transform
+        rs.ctx.restore();
+
+    }
+}
+
+rangeSlider.init(100);
+
+
+</script>
+
+</body>	
+</html>
