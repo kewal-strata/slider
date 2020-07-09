@@ -3,7 +3,6 @@
 
 <script>
 rangeSlider = {
-    totalDuration: 0,
     interpretedPercent: 0,
     currentPosition: 0,
 	maxPositionPercent: 85,
@@ -14,7 +13,7 @@ rangeSlider = {
     cw: 0,
     ch: 0,
 
-    init: function(totalDuration) {
+    init: function() {
         var rs = this;
 
         rs.canvas = document.createElement("canvas");
@@ -25,7 +24,6 @@ rangeSlider = {
         rs.draggable = false;
         rs.mouseX = 0;
 
-        rs.totalDuration = totalDuration;
         rs.cw = rs.ctx.canvas.width;
         rs.ch = rs.ctx.canvas.height;
         rs.width = this.cw - (rs.padding);
@@ -53,7 +51,6 @@ rangeSlider = {
 
         var rs = this;
         var cw = this.cw;
-        var totalDuration = this.totalDuration;
 		
 		rs.startPosition = Math.min(mouseX, rs.width);
 		rs.startPosition = Math.max(rs.startPosition, rs.padding);
@@ -133,9 +130,11 @@ rangeSlider = {
 					circleHeight = Math.round(Math.sqrt(((totRadius) * (totRadius)) + ((curRadius) * (curRadius))));
 					//console.log(circleHeight, totRadius, curRadius);
 				}
-				fy = circleHeight - 28;
+				//console.log(ch, rs.padding);
+				fy = circleHeight - (rs.padding);
 				//console.log(ch - rs.padding, circleHeight, fy);
 				//fy = fy - 95;
+				
 				if (fx < cirMid - totRadius + rectDistance) {
 					fy += 4;
 					if (fx < cirMid - totRadius)
@@ -179,10 +178,6 @@ rangeSlider = {
         e.stopPropagation();
         e.preventDefault();
 
-        rs.mouseX = e.layerX;
-		
-		//console.log(rs.mouseX);
-
         rs.mouseX = (e.targetTouches) ? e.targetTouches[0].pageX - c.offsetLeft : e.layerX - c.offsetLeft;
 		
 		//console.log(rs.mouseX, e.targetTouches);
@@ -217,7 +212,7 @@ rangeSlider = {
     }
 }
 
-rangeSlider.init(100);
+rangeSlider.init();
 
 
 </script>
